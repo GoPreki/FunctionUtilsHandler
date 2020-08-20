@@ -51,7 +51,9 @@ def update_item(table_name,
                 ReturnValues: UpdateReturnValueType = UpdateReturnValue.NONE,
                 **kwargs):
     if ExpressionAttributeValues:
-        ExpressionAttributeValues = Parser.to_decimal(ExpressionAttributeValues)
+        ExpressionAttributeValues = {'ExpressionAttributeValues': Parser.to_decimal(ExpressionAttributeValues)}
+    else:
+        ExpressionAttributeValues = {}
 
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
@@ -60,8 +62,8 @@ def update_item(table_name,
         table.update_item(
             Key=Key,
             UpdateExpression=UpdateExpression,
-            ExpressionAttributeValues=ExpressionAttributeValues,
             ReturnValues=ReturnValues.value,
+            **ExpressionAttributeValues,
             **kwargs,
         ))
 
