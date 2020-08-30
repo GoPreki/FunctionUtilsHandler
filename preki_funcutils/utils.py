@@ -38,3 +38,27 @@ class Parser:
     @staticmethod
     def to_decimal(data):
         return json.loads(json.dumps(data), parse_float=Decimal)
+
+
+def classproperty(f):
+
+    class cpf(object):
+
+        def __init__(self, getter):
+            self.getter = getter
+
+        def __get__(self, obj, type=None):
+            return self.getter(type)
+
+    return cpf(f)
+
+
+class ChoiceType():
+
+    @classproperty
+    def values(cls):
+        return cls._value2member_map_
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
