@@ -8,7 +8,7 @@ def stringify_message(message):
     if isinstance(message, dict):
         return json.dumps(message, ensure_ascii=False)
     elif isinstance(message, list):
-        return LIST_SEPARATOR.join(message)
+        return LIST_SEPARATOR.join([str(i) for i in message])
     return str(message)
 
 
