@@ -2,7 +2,8 @@ import json
 import logging
 from enum import Enum
 from functools import wraps
-from . import status, exceptions, utils
+from . import status, exceptions
+from .utils import parse_message
 
 
 def _make_response(body, status_code=status.HTTP_200_OK):
@@ -31,12 +32,15 @@ def lambda_response(func):
         protocol = _determine_protocol(event)
         try:
             if protocol == Protocol.HTTP:
-                event['body'] = utils.parse_message(event.get('body', None) or '{}')
+                event['body'] = parse_message(event.get('body', None) or '{}')
                 event['queryStringParameters'] = event.get('queryStringParameters', None) or {}
                 event['pathParameters'] = event.get('pathParameters', None) or {}
             elif protocol == Protocol.SQS:
                 for i, r in enumerate(event['Records']):
-                    event['Records'][i]['body'] = utils.parse_message(event['Records'][i]['body'])
+                    body = event['Records'][i]['body']
+                    event['Records'][i]['body'] = parse_message(body)
+                    if isinstance(body, dict) and body.get('Type', '') == 'Notification' and 'Message' in body:
+                        event['Records'][i]['body']['Message'] = parse_message(body['Message'])
 
             response = func(event, context, *args, **kwargs)
             return _make_response(body=response)
