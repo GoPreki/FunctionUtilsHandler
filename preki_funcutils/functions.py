@@ -37,8 +37,8 @@ def lambda_response(func):
                 event['pathParameters'] = event.get('pathParameters', None) or {}
             elif protocol == Protocol.SQS:
                 for i, r in enumerate(event['Records']):
-                    body = event['Records'][i]['body']
-                    event['Records'][i]['body'] = parse_message(body)
+                    body = parse_message(event['Records'][i]['body'])
+                    event['Records'][i]['body'] = body
                     if isinstance(body, dict) and body.get('Type', '') == 'Notification' and 'Message' in body:
                         event['Records'][i]['body']['Message'] = parse_message(body['Message'])
 
