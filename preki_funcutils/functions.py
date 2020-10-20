@@ -46,7 +46,7 @@ def lambda_response(func):
     @wraps(func)
     def wrapper(event, context, *args, **kwargs):
         protocol = _determine_protocol(event)
-        origin = event.get('headers', {}).get('origin', None)
+        origin = event.get('headers', {}).get('origin', '')
         stage = event.get('requestContext', {}).get('stage', 'dev')
 
         try:
