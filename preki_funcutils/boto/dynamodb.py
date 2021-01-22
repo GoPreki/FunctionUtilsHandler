@@ -94,7 +94,7 @@ def query(table_name, KeyConditionExpression, **kwargs):
     }
 
 
-def scan(table_name, ComparisonOperator, ExclusiveStartKey=None, ExpressionAttributeValues=None, **kwargs):
+def scan(table_name, ExclusiveStartKey=None, ExpressionAttributeValues=None, **kwargs):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
 
@@ -108,8 +108,7 @@ def scan(table_name, ComparisonOperator, ExclusiveStartKey=None, ExpressionAttri
     else:
         ExpressionAttributeValues = {}
 
-    response = table.scan(
-        ComparisonOperator=ComparisonOperator, **ExclusiveStartKey, **ExpressionAttributeValues, **kwargs)
+    response = table.scan(**ExclusiveStartKey, **ExpressionAttributeValues, **kwargs)
 
     return Parser.to_number(response.get('Items', None)), {
         'Count': response.get('Count', None),
