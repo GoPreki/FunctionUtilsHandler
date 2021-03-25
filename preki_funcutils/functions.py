@@ -69,6 +69,9 @@ def lambda_response(func):
                     event['Records'][i]['body'] = body
                     if isinstance(body, dict) and body.get('Type', '') == 'Notification' and 'Message' in body:
                         event['Records'][i]['body']['Message'] = parse_message(body['Message'])
+            elif protocol == Protocol.SNS:
+                for i, r in enumerate(event['Records']):
+                    event['Records'][i]['Sns']['Message'] = parse_message(event['Records'][i]['Sns']['Message'])
 
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
