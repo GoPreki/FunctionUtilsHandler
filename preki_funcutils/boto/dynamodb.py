@@ -92,3 +92,26 @@ def query(table_name, KeyConditionExpression, **kwargs):
         'ScannedCount': response.get('ScannedCount', None),
         'LastEvaluatedKey': response.get('LastEvaluatedKey', None),
     }
+
+
+def scan(table_name, ExclusiveStartKey=None, ExpressionAttributeValues=None, **kwargs):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(table_name)
+
+    if ExclusiveStartKey:
+        ExclusiveStartKey = {'ExclusiveStartKey': Parser.to_decimal(ExclusiveStartKey)}
+    else:
+        ExclusiveStartKey = {}
+
+    if ExpressionAttributeValues:
+        ExpressionAttributeValues = {'ExpressionAttributeValues': Parser.to_decimal(ExpressionAttributeValues)}
+    else:
+        ExpressionAttributeValues = {}
+
+    response = table.scan(**ExclusiveStartKey, **ExpressionAttributeValues, **kwargs)
+
+    return Parser.to_number(response.get('Items', None)), {
+        'Count': response.get('Count', None),
+        'ScannedCount': response.get('ScannedCount', None),
+        'LastEvaluatedKey': response.get('LastEvaluatedKey', None),
+    }
