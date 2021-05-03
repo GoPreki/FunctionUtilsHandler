@@ -35,9 +35,9 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
     }
 
 
-def _make_error(origin, stage, type, message, error_code, status_code):
+def _make_error(origin, stage, type, message, error_code, status_code, data):
     error = {'type': type, 'message': message, 'error_code': error_code}
-    return _make_response(origin=origin, stage=stage, body={'error': error}, status_code=status_code)
+    return _make_response(origin=origin, stage=stage, body={'error': error, 'data': data}, status_code=status_code)
 
 
 def _determine_protocol(event):
@@ -82,7 +82,8 @@ def lambda_response(func):
                                type=type(e).__name__,
                                message=e.message,
                                error_code=e.error_code,
-                               status_code=e.status_code)
+                               status_code=e.status_code,
+                               data=e.data)
         except Exception as e:
             logging.exception(e)
             if protocol == Protocol.HTTP:
@@ -91,7 +92,8 @@ def lambda_response(func):
                                    type=type(e).__name__,
                                    message=str(e),
                                    error_code=None,
-                                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   data=None)
             elif protocol == Protocol.SQS:
                 raise e
 
