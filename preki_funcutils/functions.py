@@ -24,11 +24,13 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
         is_localhost = re.match(r'((http|https):\/\/)?localhost((:|\/).+)?$', origin)
         is_allowed = stage == 'dev' and is_localhost
 
+        print(is_allowed, origin)
+
     return {
         'statusCode': status_code,
         'headers': {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': origin if is_allowed else 'http://gopreki.com',
+            'Access-Control-Allow-Origin': origin if is_allowed else 'http://preki.com',
             'Access-Control-Allow-Credentials': True,
         },
         'body': json.dumps(body)
