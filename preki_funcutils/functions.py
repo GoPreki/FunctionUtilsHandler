@@ -24,8 +24,6 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
         is_localhost = re.match(r'((http|https):\/\/)?localhost((:|\/).+)?$', origin)
         is_allowed = stage == 'dev' and is_localhost
 
-        print(is_allowed, origin)
-
     return {
         'statusCode': status_code,
         'headers': {
@@ -57,7 +55,8 @@ def lambda_response(func):
     @wraps(func)
     def wrapper(event, context, *args, **kwargs):
         protocol = _determine_protocol(event)
-        origin = event.get('headers', {}).get('origin', '')
+        headers = event.get('headers', {})
+        origin = headers.get('origin', headers.get('Origin'))
         stage = event.get('requestContext', {}).get('stage', 'dev')
 
         try:
