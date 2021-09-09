@@ -28,16 +28,16 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
         'statusCode': status_code,
         'headers': {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': origin if is_allowed else 'http://gopreki.com',
+            'Access-Control-Allow-Origin': origin if is_allowed else 'http://preki.com',
             'Access-Control-Allow-Credentials': True,
         },
         'body': json.dumps(body)
     }
 
 
-def _make_error(origin, stage, type, message, error_code, status_code):
+def _make_error(origin, stage, type, message, error_code, status_code, data):
     error = {'type': type, 'message': message, 'error_code': error_code}
-    return _make_response(origin=origin, stage=stage, body={'error': error}, status_code=status_code)
+    return _make_response(origin=origin, stage=stage, body={'error': error, 'data': data}, status_code=status_code)
 
 
 def _determine_protocol(event):
@@ -55,7 +55,8 @@ def lambda_response(func):
     @wraps(func)
     def wrapper(event, context, *args, **kwargs):
         protocol = _determine_protocol(event)
-        origin = event.get('headers', {}).get('origin', '')
+        headers = event.get('headers', {})
+        origin = headers.get('origin', headers.get('Origin', ''))
         stage = event.get('requestContext', {}).get('stage', 'dev')
 
         try:
@@ -69,6 +70,9 @@ def lambda_response(func):
                     event['Records'][i]['body'] = body
                     if isinstance(body, dict) and body.get('Type', '') == 'Notification' and 'Message' in body:
                         event['Records'][i]['body']['Message'] = parse_message(body['Message'])
+            elif protocol == Protocol.SNS:
+                for i, r in enumerate(event['Records']):
+                    event['Records'][i]['Sns']['Message'] = parse_message(event['Records'][i]['Sns']['Message'])
 
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
@@ -79,7 +83,8 @@ def lambda_response(func):
                                type=type(e).__name__,
                                message=e.message,
                                error_code=e.error_code,
-                               status_code=e.status_code)
+                               status_code=e.status_code,
+                               data=e.data)
         except Exception as e:
             logging.exception(e)
             if protocol == Protocol.HTTP:
@@ -88,7 +93,8 @@ def lambda_response(func):
                                    type=type(e).__name__,
                                    message=str(e),
                                    error_code=None,
-                                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                   status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                   data=None)
             elif protocol == Protocol.SQS:
                 raise e
 
