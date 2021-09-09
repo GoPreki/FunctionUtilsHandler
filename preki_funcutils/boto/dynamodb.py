@@ -1,7 +1,7 @@
 import boto3
 from enum import Enum
 from typing import Union
-from ..utils import Parser
+from ..utils import Parser, chunks
 
 
 class CommonReturnValue(Enum):
@@ -31,6 +31,44 @@ def get_item(table_name, Key, **kwargs):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
     return Parser.to_number(table.get_item(Key=Key, **kwargs).get('Item', None))
+
+
+def batch_get_item(table_name, Keys, **kwargs):
+    if not table_name:
+        raise Exception('Table name cannot be empty')
+    dynamodb = boto3.resource('dynamodb')
+
+    items = []
+    for c in chunks(Keys, 100):
+        items += _batch_get_item(
+            dynamodb=dynamodb,
+            RequestItems={
+                table_name : {
+                    'Keys': c,            
+                    'ConsistentRead': False            
+                }
+            },
+            **kwargs
+        ).get(table_name, [])
+
+    return Parser.to_number(items)
+
+def _batch_get_item(dynamodb, RequestItems, **kwargs):
+    response = dynamodb.batch_get_item(
+        RequestItems=RequestItems,
+        **kwargs,
+    )
+    responses, unprocessed_keys = response.get('Responses', {}), response.get('UnprocessedKeys', {})
+
+    if unprocessed_keys:
+        unprocessed_responses = _batch_get_item(dynamodb=dynamodb, RequestItems=unprocessed_keys, **kwargs)
+        for table, values in (unprocessed_responses or {}).items():
+            if table in responses:
+                responses[table] += values
+                continue
+            responses[table] = values
+
+    return responses
 
 
 def put_item(table_name, Item, ReturnValues: PutReturnValueType = PutReturnValue.NONE, **kwargs):

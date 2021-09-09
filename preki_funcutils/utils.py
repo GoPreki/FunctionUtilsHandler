@@ -4,6 +4,11 @@ from decimal import Decimal
 LIST_SEPARATOR = '@@'
 
 
+def chunks(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+
 def stringify_message(message):
     if isinstance(message, dict):
         return json.dumps(message, ensure_ascii=False)
