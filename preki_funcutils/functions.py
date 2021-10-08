@@ -22,7 +22,7 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
 
     if not is_allowed:
         is_localhost = re.match(r'((http|https):\/\/)?localhost((:|\/).+)?$', origin)
-        is_allowed = is_localhost
+        is_allowed = stage == 'dev' and is_localhost
 
     return {
         'statusCode': status_code,
