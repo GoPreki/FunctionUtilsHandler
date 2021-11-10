@@ -1,5 +1,5 @@
 import boto3
-from ..utils import stringify_message
+from ..utils import chunks, stringify_message
 
 
 def enqueue_message(queue_name, message, **kwargs):
@@ -14,10 +14,22 @@ def enqueue_message(queue_name, message, **kwargs):
 def enqueue_messages_batch(queue_name, messages, **kwargs):
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=queue_name)
-    return queue.send_messages(
-        Entries=[{
-            'Id': f'{i}',
-            'MessageBody': stringify_message(m)
-        } for i, m in enumerate(messages)],
-        **kwargs,
-    )
+
+    response = {
+        'Successful': [],
+        'Failed': []
+    }
+
+    for messages_chunk in chunks(messages, 10):
+        chunk_response = queue.send_messages(
+            Entries=[{
+                'Id': f'{i}',
+                'MessageBody': stringify_message(m)
+            } for i, m in enumerate(messages_chunk)],
+            **kwargs,
+        )
+
+        response['Successful'].extend(chunk_response.get('Successful', []))
+        response['Failed'].extend(chunk_response.get('Failed', []))
+
+    return response
