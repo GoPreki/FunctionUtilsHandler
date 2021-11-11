@@ -40,18 +40,17 @@ def batch_get_item(table_name, Keys, **kwargs):
 
     items = []
     for c in chunks(Keys, 100):
-        items += _batch_get_item(
-            dynamodb=dynamodb,
-            RequestItems={
-                table_name : {
-                    'Keys': c,            
-                    'ConsistentRead': False            
-                }
-            },
-            **kwargs
-        ).get(table_name, [])
+        items += _batch_get_item(dynamodb=dynamodb,
+                                 RequestItems={
+                                     table_name: {
+                                         'Keys': c,
+                                         'ConsistentRead': False
+                                     }
+                                 },
+                                 **kwargs).get(table_name, [])
 
     return Parser.to_number(items)
+
 
 def _batch_get_item(dynamodb, RequestItems, **kwargs):
     response = dynamodb.batch_get_item(
@@ -69,6 +68,42 @@ def _batch_get_item(dynamodb, RequestItems, **kwargs):
             responses[table] = values
 
     return responses
+
+
+def batch_write_item(table_name, PutItems=[], DeleteKeys=[], **kwargs):
+    if not table_name:
+        raise Exception('Table name cannot be empty')
+    if not PutItems and not DeleteKeys:
+        raise Exception('Requests cannot be empty')
+
+    dynamodb = boto3.resource('dynamodb')
+
+    requests = [
+        *[{
+            'PutRequest': {
+                'Item': item
+            }
+        } for item in PutItems],
+        *[{
+            'DeleteRequest': {
+                'Key': key
+            }
+        } for key in DeleteKeys],
+    ]
+
+    for c in chunks(requests, 25):
+        _batch_write_item(dynamodb=dynamodb, RequestItems={table_name: c}, **kwargs)
+
+
+def _batch_write_item(dynamodb, RequestItems, **kwargs):
+    response = dynamodb.batch_write_item(
+        RequestItems=RequestItems,
+        **kwargs,
+    )
+    unprocessed_keys = response.get('UnprocessedKeys', {})
+
+    if unprocessed_keys:
+        _batch_write_item(dynamodb=dynamodb, RequestItems=unprocessed_keys, **kwargs)
 
 
 def put_item(table_name, Item, ReturnValues: PutReturnValueType = PutReturnValue.NONE, **kwargs):
