@@ -167,6 +167,28 @@ def query(table_name, KeyConditionExpression, **kwargs):
     }
 
 
+def query_all(table_name, KeyConditionExpression, **kwargs):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table(table_name)
+
+    return _query_all(table=table, KeyConditionExpression=KeyConditionExpression, **kwargs)
+
+
+def _query_all(table, KeyConditionExpression, **kwargs):
+    response = table.query(KeyConditionExpression=KeyConditionExpression, **kwargs)
+
+    items, last_key = Parser.to_number(response.get('Items', None)), response.get('LastEvaluatedKey', None)
+    if items and last_key:
+        items += _query_all(
+            table=table,
+            KeyConditionExpression=KeyConditionExpression,
+            **kwargs,
+            ExclusiveStartKey=last_key,
+        )
+
+    return items
+
+
 def scan(table_name, ExclusiveStartKey=None, ExpressionAttributeValues=None, **kwargs):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
