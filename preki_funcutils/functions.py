@@ -17,11 +17,11 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
 
     is_allowed = bool([
         host for host in allowed_hosts
-        if re.match(rf'^((http|https):\/\/)?([a-zA-Z0-9]*\.)*{re.escape(host)}((\.[a-zA-Z]+)+)?(\/.*)?$', origin)
+        if re.match(rf'^((http|https|capacitor):\/\/)?([a-zA-Z0-9]*\.)*{re.escape(host)}((\.[a-zA-Z]+)+)?(\/.*)?$', origin)
     ])
 
     if not is_allowed:
-        is_localhost = re.match(r'((http|https):\/\/)?localhost((:|\/).+)?$', origin)
+        is_localhost = re.match(r'((http|https|capacitor):\/\/)?localhost((:|\/).+)?$', origin)
         is_allowed = stage == 'dev' and is_localhost
 
     return {
