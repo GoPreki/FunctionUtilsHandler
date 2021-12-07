@@ -60,11 +60,17 @@ def _set_lambda_context(context):
 def _set_lambda_event(protocol: Protocol, event=None):
     extra = {}
     if protocol == Protocol.HTTP:
-        path = event['path']
-        entity, id = find_entity(path=path)
-        extra = {'entity': entity, 'id': id}
+        try:
+            path = event['path']
+            entity, id = find_entity(path=path)
+            extra = {'entity_type': entity}
+            if id:
+                extra['entity_id'] = id
+        except Exception:
+            pass
+
     LambdaEvent.set({
-        'protocol': protocol,
+        'protocol': protocol.value,
         **extra,
     })
 
@@ -107,7 +113,7 @@ def lambda_response(func):
                                status_code=e.status_code,
                                data=e.data)
         except Exception as e:
-            log(level=LogLevel.CRITITAL, message=e)
+            log(level=LogLevel.CRITICAL, message=e)
             if protocol == Protocol.HTTP:
                 return _make_error(origin=origin,
                                    stage=stage,

@@ -1,8 +1,10 @@
 from enum import Enum
 from contextvars import ContextVar
+import logging
 
 LambdaContext = ContextVar('LambdaContext', default={})
 LambdaEvent = ContextVar('LambdaEvent', default={})
+LogLevelContext = ContextVar('LambdaEvent', default=logging.INFO)
 
 
 class Protocol(Enum):
