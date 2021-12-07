@@ -17,17 +17,15 @@ def enqueue_messages_batch(queue_name, messages, **kwargs):
 
     response = {
         'Successful': [],
-        'Failed': []
+        'Failed': [],
     }
 
     for messages_chunk in chunks(messages, 10):
-        chunk_response = queue.send_messages(
-            Entries=[{
-                'Id': f'{i}',
-                'MessageBody': stringify_message(m)
-            } for i, m in enumerate(messages_chunk)],
+        chunk_response = queue.send_messages(Entries=[{
+            'Id': f'{i}',
+            'MessageBody': stringify_message(m),
             **kwargs,
-        )
+        } for i, m in enumerate(messages_chunk)])
 
         response['Successful'].extend(chunk_response.get('Successful', []))
         response['Failed'].extend(chunk_response.get('Failed', []))
