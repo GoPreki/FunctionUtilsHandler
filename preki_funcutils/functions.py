@@ -1,10 +1,10 @@
 import json
 import re
-import logging
-from enum import Enum
 from functools import wraps
-from . import status, exceptions
+from preki_funcutils.logger import LogLevel, log
 from .utils import parse_message
+from .internals import LambdaContext, LambdaEvent, Protocol, find_entity
+from . import status, exceptions
 
 
 def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
@@ -16,8 +16,8 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
     ]
 
     is_allowed = bool([
-        host for host in allowed_hosts
-        if re.match(rf'^((http|https|capacitor):\/\/)?([a-zA-Z0-9]*\.)*{re.escape(host)}((\.[a-zA-Z]+)+)?(\/.*)?$', origin)
+        host for host in allowed_hosts if re.match(
+            rf'^((http|https|capacitor):\/\/)?([a-zA-Z0-9]*\.)*{re.escape(host)}((\.[a-zA-Z]+)+)?(\/.*)?$', origin)
     ])
 
     if not is_allowed:
@@ -50,10 +50,30 @@ def _determine_protocol(event):
         return Protocol.HTTP
 
 
+def _set_lambda_context(context):
+    LambdaContext.set({
+        'function_name': context.function_name,
+        'function_version': context.function_version,
+    })
+
+
+def _set_lambda_event(protocol: Protocol, event=None):
+    extra = {}
+    if protocol == Protocol.HTTP:
+        path = event['path']
+        entity, id = find_entity(path=path)
+        extra = {'entity': entity, 'id': id}
+    LambdaEvent.set({
+        'protocol': protocol,
+        **extra,
+    })
+
+
 def lambda_response(func):
 
     @wraps(func)
     def wrapper(event, context, *args, **kwargs):
+        _set_lambda_context(context)
         protocol = _determine_protocol(event)
         headers = event.get('headers', {})
         origin = headers.get('origin', headers.get('Origin', ''))
@@ -74,10 +94,11 @@ def lambda_response(func):
                 for i, r in enumerate(event['Records']):
                     event['Records'][i]['Sns']['Message'] = parse_message(event['Records'][i]['Sns']['Message'])
 
+            _set_lambda_event(protocol=protocol, event=event)
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
         except exceptions.PrekiException as e:
-            logging.warning(e)
+            log(level=LogLevel.WARNING, message=e)
             return _make_error(origin=origin,
                                stage=stage,
                                type=type(e).__name__,
@@ -86,7 +107,7 @@ def lambda_response(func):
                                status_code=e.status_code,
                                data=e.data)
         except Exception as e:
-            logging.exception(e)
+            log(level=LogLevel.CRITITAL, message=e)
             if protocol == Protocol.HTTP:
                 return _make_error(origin=origin,
                                    stage=stage,
@@ -99,9 +120,3 @@ def lambda_response(func):
                 raise e
 
     return wrapper
-
-
-class Protocol(Enum):
-    HTTP = 'HTTP'
-    SQS = 'SQS'
-    SNS = 'SNS'
