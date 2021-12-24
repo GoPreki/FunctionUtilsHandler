@@ -11,6 +11,7 @@ class Protocol(Enum):
     HTTP = 'HTTP'
     SQS = 'SQS'
     SNS = 'SNS'
+    INVOKE = 'INVOKE'
 
 
 def find_entity(path: str):

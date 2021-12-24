@@ -8,11 +8,12 @@ PREKI_LOGGER_ID = 'preki-logger'
 PREKI_LOGGER_ID = 'preki-logger'
 
 logger = logging.getLogger(PREKI_LOGGER_ID)
-if logger.handlers:
-    logger.removeHandler(logger.handlers[0])
+for h in logger.handlers:
+    logger.removeHandler(h)
 logger_handler = logging.StreamHandler()
 logger_handler.setFormatter(logging.Formatter('%(message)s'))
 logger.addHandler(logger_handler)
+logger.propagate = False
 
 
 class LogLevel(Enum):
@@ -29,7 +30,7 @@ def parse(data):
         return data
 
 
-def log(level: LogLevel = LogLevel.INFO, message='', args={}):
+def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
     lambda_context = LambdaContext.get()
     lambda_event = LambdaEvent.get()
 
@@ -38,6 +39,7 @@ def log(level: LogLevel = LogLevel.INFO, message='', args={}):
     logger.log(
         level=level.value,
         msg=parse({
+            'event': event,
             'message': message,
             **args,
             **lambda_context,

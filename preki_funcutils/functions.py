@@ -60,14 +60,14 @@ def _set_lambda_context(context):
 def _set_lambda_event(protocol: Protocol, event=None):
     extra = {}
     if protocol == Protocol.HTTP:
-        try:
+        if 'path' in event:
             path = event['path']
             entity, id = find_entity(path=path)
             extra = {'entity_type': entity}
-            if id:
+            if id is not None:
                 extra['entity_id'] = id
-        except Exception:
-            pass
+        else:
+            protocol = Protocol.INVOKE
 
     LambdaEvent.set({
         'protocol': protocol.value,
@@ -104,7 +104,7 @@ def lambda_response(func):
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
         except exceptions.PrekiException as e:
-            log(level=LogLevel.WARNING, message=e)
+            log(level=LogLevel.WARNING, message=e.message, args=e.data)
             return _make_error(origin=origin,
                                stage=stage,
                                type=type(e).__name__,
@@ -113,7 +113,7 @@ def lambda_response(func):
                                status_code=e.status_code,
                                data=e.data)
         except Exception as e:
-            log(level=LogLevel.CRITICAL, message=e)
+            log(level=LogLevel.CRITICAL, message=str(e))
             if protocol == Protocol.HTTP:
                 return _make_error(origin=origin,
                                    stage=stage,
