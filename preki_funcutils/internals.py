@@ -18,7 +18,7 @@ def find_entity(path: str):
     id = None
 
     paths = path[1:].split('/', 2)
-    if paths[1].isnumeric():
+    if len(paths) > 1 and paths[1].isnumeric():
         id = paths[1]
 
     return paths[0], id
