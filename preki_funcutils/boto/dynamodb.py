@@ -8,18 +8,22 @@ class CommonReturnValue(Enum):
     NONE = 'NONE'
 
 
-class DeleteReturnValue(CommonReturnValue, Enum):
+class DeleteReturnValue(Enum):
+    NONE = 'NONE'
     ALL_OLD = 'ALL_OLD'
 
 
-class PutReturnValue(DeleteReturnValue, Enum):
-    pass
+class PutReturnValue(Enum):
+    NONE = 'NONE'
+    ALL_OLD = 'ALL_OLD'
 
 
-class UpdateReturnValue(DeleteReturnValue, Enum):
+class UpdateReturnValue(Enum):
     ALL_NEW = 'ALL_NEW'
     UPDATED_OLD = 'UPDATED_OLD'
     UPDATED_NEW = 'UPDATED_NEW'
+    NONE = 'NONE'
+    ALL_OLD = 'ALL_OLD'
 
 
 DeleteReturnValueType = Union[DeleteReturnValue, CommonReturnValue]
