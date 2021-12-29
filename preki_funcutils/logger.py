@@ -36,6 +36,13 @@ def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
 
     exec_info = True if level in [LogLevel.ERROR, LogLevel.CRITICAL] else None
     logger.setLevel(LogLevelContext.get())
+
+    if level in [LogLevel.ERROR, LogLevel.CRITICAL]:
+        import traceback
+        _traceback = traceback.format_exc()
+        if _traceback.strip() != 'NoneType: None':
+            args = {**args, 'traceback': _traceback}
+
     logger.log(
         level=level.value,
         msg=parse({
