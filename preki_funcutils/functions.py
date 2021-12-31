@@ -10,9 +10,25 @@ from . import status, exceptions
 def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
 
     allowed_hosts = [
-        'gopreki.com',
         'preki.com',
         'preki.co',
+        'preki.com.pa',
+        'preki.com.py',
+        'preki.sv',
+        'preki.com.ni',
+        'preki.ar',
+        'preki.com.ve',
+        'preki.com.br',
+        'preki.hn',
+        'preki.ec',
+        'preki.pe',
+        'preki.cr',
+        'preki.mx',
+        'preki.do',
+        'preki.gt',
+        'preki.bo',
+        'preki.cl',
+        'preki.uy',
     ]
 
     is_allowed = bool([
