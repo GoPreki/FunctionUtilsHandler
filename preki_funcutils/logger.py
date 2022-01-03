@@ -46,11 +46,11 @@ def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
     logger.log(
         level=level.value,
         msg=parse({
-            'event': event,
-            'message': message,
             **args,
             **lambda_context,
             **lambda_event,
+            'event': event,
+            'message': message,
             'level': level.name,
             PREKI_LOGGER_ID_KEY: PREKI_LOGGER_ID,
         }),

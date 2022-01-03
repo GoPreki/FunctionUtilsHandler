@@ -10,9 +10,25 @@ from . import status, exceptions
 def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
 
     allowed_hosts = [
-        'gopreki.com',
         'preki.com',
         'preki.co',
+        'preki.com.pa',
+        'preki.com.py',
+        'preki.sv',
+        'preki.com.ni',
+        'preki.ar',
+        'preki.com.ve',
+        'preki.com.br',
+        'preki.hn',
+        'preki.ec',
+        'preki.pe',
+        'preki.cr',
+        'preki.mx',
+        'preki.do',
+        'preki.gt',
+        'preki.bo',
+        'preki.cl',
+        'preki.uy',
     ]
 
     is_allowed = bool([
@@ -104,7 +120,9 @@ def lambda_response(func):
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
         except exceptions.PrekiException as e:
-            log(level=LogLevel.WARNING, message=e.message, args=e.data)
+            if e.force_error:
+                raise e
+
             return _make_error(origin=origin,
                                stage=stage,
                                type=type(e).__name__,
