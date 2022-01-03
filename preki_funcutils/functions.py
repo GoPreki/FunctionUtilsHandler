@@ -120,15 +120,6 @@ def lambda_response(func):
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response)
         except exceptions.PrekiException as e:
-            if e.log_event:
-                log(level=e.log_level,
-                    event=e.log_event,
-                    message=e.message,
-                    args={
-                        **(e.log_data or e.data or {}),
-                        'status_code': e.status_code,
-                    })
-
             if e.force_error:
                 raise e
 
