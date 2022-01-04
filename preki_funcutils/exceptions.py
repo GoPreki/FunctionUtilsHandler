@@ -7,8 +7,8 @@ class PrekiException(Exception):
     def __init__(
         self,
         message: str,
-        error_code: str = None,
         status_code: int = status.HTTP_400_BAD_REQUEST,
+        error_code: Optional[int] = None,
         data: Optional[dict] = None,
         force_error: bool = False,
     ):
