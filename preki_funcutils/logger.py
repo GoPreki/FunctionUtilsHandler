@@ -31,6 +31,7 @@ def parse(data):
 
 
 def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
+    args = args or {}
     lambda_context = LambdaContext.get()
     lambda_event = LambdaEvent.get()
 
