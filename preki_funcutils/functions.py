@@ -8,6 +8,10 @@ from . import status, exceptions
 
 
 def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
+    allowed_origin = None
+    if type(body) == tuple:
+        allowed_origin = body[1]
+        body = body[0]
 
     allowed_hosts = [
         'preki.com',
@@ -44,7 +48,7 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
         'statusCode': status_code,
         'headers': {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': origin if is_allowed else 'http://preki.com',
+            'Access-Control-Allow-Origin': allowed_origin or (origin if is_allowed else 'http://preki.com'),
             'Access-Control-Allow-Credentials': True,
         },
         'body': json.dumps(body)
