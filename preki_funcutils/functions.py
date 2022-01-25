@@ -102,8 +102,7 @@ def lambda_response(func):
         headers = event.get('headers', {})
         origin = headers.get('origin', headers.get('Origin', ''))
         stage = event.get('requestContext', {}).get('stage', 'dev')
-        allowed_origin = event.get(
-            'requestContext', {}).get('authorizer', {}).get('allowed_url', None)
+        allowed_origin = event.get('requestContext', {}).get('authorizer', {}).get('allowedURL', None)
 
         try:
             if protocol == Protocol.HTTP:
