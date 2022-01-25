@@ -7,11 +7,9 @@ from .internals import LambdaContext, LambdaEvent, Protocol, find_entity
 from . import status, exceptions
 
 
-def _make_response(origin, stage, body, status_code=status.HTTP_200_OK):
-    allowed_origin = None
-    if type(body) == tuple:
-        allowed_origin = body[1]
-        body = body[0]
+def _make_response(origin, stage, body, status_code=status.HTTP_200_OK, allowed_origin=None):
+    if allowed_origin is not None:
+        allowed_origin = f'https://{allowed_origin}'
 
     allowed_hosts = [
         'preki.com',
@@ -104,6 +102,7 @@ def lambda_response(func):
         headers = event.get('headers', {})
         origin = headers.get('origin', headers.get('Origin', ''))
         stage = event.get('requestContext', {}).get('stage', 'dev')
+        allowed_origin = event.get('requestContext', {}).get('authorizer', {}).get('allowedURL', None)
 
         try:
             if protocol == Protocol.HTTP:
@@ -122,7 +121,7 @@ def lambda_response(func):
 
             _set_lambda_event(protocol=protocol, event=event)
             response = func(event, context, *args, **kwargs)
-            return _make_response(origin=origin, stage=stage, body=response)
+            return _make_response(origin=origin, stage=stage, body=response, allowed_origin=allowed_origin)
         except exceptions.PrekiException as e:
             if e.force_error:
                 raise e
