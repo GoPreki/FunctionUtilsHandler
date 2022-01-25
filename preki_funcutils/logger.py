@@ -1,6 +1,7 @@
 import logging
 import json
 from enum import Enum
+from typing import Optional
 from .internals import LambdaContext, LambdaEvent, LogLevelContext
 
 PREKI_LOGGER_ID_KEY = 'logger_id'
@@ -30,7 +31,7 @@ def parse(data):
         return data
 
 
-def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
+def _log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
     args = args or {}
     lambda_context = LambdaContext.get()
     lambda_event = LambdaEvent.get()
@@ -57,3 +58,10 @@ def log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
         }),
         exc_info=exec_info,
     )
+
+
+def log(level: LogLevel = LogLevel.INFO, event: Optional[str] = None, message='', args={}):
+    try:
+        _log(level=level, event=event, message=message, args=args)
+    except Exception as e:
+        _log(LogLevel.CRITICAL, event='log_failed', args={'error': str(e)})
