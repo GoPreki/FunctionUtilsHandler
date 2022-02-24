@@ -48,6 +48,7 @@ def _make_response(origin, stage, body, status_code=status.HTTP_200_OK, allowed_
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': allowed_origin or (origin if is_allowed else 'http://preki.com'),
             'Access-Control-Allow-Credentials': True,
+            'Access-Control-Allow-Headers': 'App-Version',
         },
         'body': json.dumps(body)
     }
