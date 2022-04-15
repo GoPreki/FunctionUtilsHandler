@@ -76,7 +76,7 @@ def _set_lambda_context(context):
     })
 
 
-def _set_lambda_event(protocol: Protocol, event=None):
+def _set_lambda_event(protocol: Protocol, event):
     extra = {}
     if protocol == Protocol.HTTP:
         if 'path' in event:
@@ -107,7 +107,7 @@ def lambda_response(func):
 
         try:
             if protocol == Protocol.HTTP:
-                event['body'] = parse_message(event.get('body', None) or '{}')
+                event['body'], event['bodyString'] = parse_message(event.get('body', None) or '{}'), event.get('body')
                 event['queryStringParameters'] = event.get('queryStringParameters', None) or {}
                 event['pathParameters'] = event.get('pathParameters', None) or {}
             elif protocol == Protocol.SQS:
