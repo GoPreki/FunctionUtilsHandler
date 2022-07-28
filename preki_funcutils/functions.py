@@ -131,7 +131,7 @@ def lambda_response(func):
             response = func(event, context, *args, **kwargs)
             return _make_response(origin=origin, stage=stage, body=response, allowed_origin=allowed_origin)
         except exceptions.PrekiException as e:
-            if e.force_error:
+            if e.force_error and protocol != Protocol.HTTP:
                 raise e
 
             return _make_error(origin=origin,
