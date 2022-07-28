@@ -2,7 +2,7 @@ import json
 import re
 from functools import wraps
 from preki_funcutils.logger import LogLevel, log
-from .utils import parse_message
+from .utils import parse_message, Parser
 from .internals import LambdaContext, LambdaEvent, Protocol, find_entity
 from . import status, exceptions
 
@@ -64,6 +64,10 @@ def _determine_protocol(event):
         records = event['Records']
         if len(records) and records[0].get('EventSource', None) == 'aws:sns':
             return Protocol.SNS
+
+        if len(records) and records[0].get('EventSource', None) == 'aws:dynamodb':
+            return Protocol.DYNAMODB
+
         return Protocol.SQS
     else:
         return Protocol.HTTP
@@ -119,6 +123,9 @@ def lambda_response(func):
             elif protocol == Protocol.SNS:
                 for i, r in enumerate(event['Records']):
                     event['Records'][i]['Sns']['Message'] = parse_message(event['Records'][i]['Sns']['Message'])
+            elif protocol == Protocol.DYNAMODB:
+                for i, r in enumerate(event['Records']):
+                    event['Records'][i]['dynamodb']['Keys'] = Parser.to_number(event['Records'][i]['dynamodb']['Keys'])
 
             _set_lambda_event(protocol=protocol, event=event)
             response = func(event, context, *args, **kwargs)

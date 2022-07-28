@@ -11,6 +11,7 @@ class Protocol(Enum):
     HTTP = 'HTTP'
     SQS = 'SQS'
     SNS = 'SNS'
+    DYNAMODB = 'DYNAMODB'
     INVOKE = 'INVOKE'
 
 

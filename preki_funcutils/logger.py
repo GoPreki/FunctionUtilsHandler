@@ -31,7 +31,7 @@ def parse(data):
         return data
 
 
-def _log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
+def _log(level: LogLevel = LogLevel.INFO, event=None, args={}):
     args = args or {}
     lambda_context = LambdaContext.get()
     lambda_event = LambdaEvent.get()
@@ -52,7 +52,6 @@ def _log(level: LogLevel = LogLevel.INFO, event=None, message='', args={}):
             **lambda_context,
             **lambda_event,
             'event': event,
-            'message': message,
             'level': level.name,
             PREKI_LOGGER_ID_KEY: PREKI_LOGGER_ID,
         }),
