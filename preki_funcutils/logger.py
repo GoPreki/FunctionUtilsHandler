@@ -59,8 +59,8 @@ def _log(level: LogLevel = LogLevel.INFO, event=None, args={}):
     )
 
 
-def log(level: LogLevel = LogLevel.INFO, event: Optional[str] = None, message='', args={}):
+def log(level: LogLevel = LogLevel.INFO, event: Optional[str] = None, args={}):
     try:
-        _log(level=level, event=event, message=message, args=args)
+        _log(level=level, event=event, args=args)
     except Exception as e:
         _log(LogLevel.CRITICAL, event='log_failed', args={'error': str(e)})

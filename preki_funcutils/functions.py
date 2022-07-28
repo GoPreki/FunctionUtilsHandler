@@ -142,7 +142,7 @@ def lambda_response(func):
                                status_code=e.status_code,
                                data=e.data)
         except Exception as e:
-            log(level=LogLevel.CRITICAL, message=str(e))
+            log(level=LogLevel.CRITICAL, args={'error': str(e)})
             if protocol == Protocol.HTTP:
                 return _make_error(origin=origin,
                                    stage=stage,
