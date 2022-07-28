@@ -62,10 +62,15 @@ def _make_error(origin, stage, type, message, error_code, status_code, data):
 def _determine_protocol(event):
     if 'Records' in event:
         records = event['Records']
-        if len(records) and records[0].get('EventSource', None) == 'aws:sns':
+
+        event_source = None
+        if len(records):
+            event_source = records[0].get('EventSource') or records[0].get('eventSource')
+
+        if event_source == 'aws:sns':
             return Protocol.SNS
 
-        if len(records) and records[0].get('EventSource', None) == 'aws:dynamodb':
+        if event_source == 'aws:dynamodb':
             return Protocol.DYNAMODB
 
         return Protocol.SQS
